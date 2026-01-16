@@ -1,0 +1,205 @@
+import { StyleSheet } from 'react-native';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  navbar: {
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    paddingHorizontal: 24,
+    paddingTop: 48,
+    paddingBottom: 16,
+  },
+  navContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  navLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  logo: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#000',
+  },
+  divider: {
+    width: 1,
+    height: 20,
+    backgroundColor: '#e5e5e5',
+  },
+  navSubtitle: {
+    fontSize: 11,
+    color: '#a3a3a3',
+    textTransform: 'uppercase',
+    letterSpacing: 1.6,
+    fontWeight: '500',
+  },
+  navRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  btnAgenda: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#f9f9f9',
+    borderWidth: 1,
+    borderColor: '#eeeeee',
+    borderRadius: 50,
+  },
+  btnAgendaText: {
+    fontWeight: '600',
+    fontSize: 13,
+    color: '#000',
+  },
+  adminInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  adminName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#000',
+  },
+  btnIconLogout: {
+    fontSize: 20,
+    color: '#262626',
+  },
+  fabContainer: {
+    position: 'absolute',
+    bottom: 32,
+    right: 24,
+    flexDirection: 'column',
+    gap: 16,
+    alignItems: 'flex-end',
+  },
+  fabPrimary: {
+    width: 64,
+    height: 64,
+    backgroundColor: '#000',
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  fabSecondary: {
+    width: 56,
+    height: 56,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  fabIcon: {
+    fontSize: 28,
+    color: '#fff',
+  },
+  main: {
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+  },
+  heroSection: {
+    marginBottom: 8,
+  },
+  heroText: {
+    marginBottom: 24,
+  },
+  heroTitle: {
+    fontSize: 32,
+    fontWeight: '200',
+    letterSpacing: -1,
+    marginBottom: 8,
+    color: '#000',
+  },
+  heroSubtitle: {
+    color: '#737373',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 64,
+    gap: 16,
+  },
+  spinner: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 3,
+    borderColor: '#e5e5e5',
+    borderTopColor: '#000',
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#737373',
+    fontWeight: '500',
+  },
+  gridLayout: {
+    gap: 0,
+  },
+  skeletonCard: {
+    aspectRatio: 4 / 5,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 32,
+    marginBottom: 24,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 80,
+    gap: 16,
+  },
+  emptyStateIcon: {
+    fontSize: 56,
+    marginBottom: 8,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+    textAlign: 'center',
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: '#737373',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  emptyText: {
+    fontSize: 15,
+    color: '#737373',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  emptyButton: {
+    backgroundColor: '#000',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  emptyButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+});
+
+export default styles;

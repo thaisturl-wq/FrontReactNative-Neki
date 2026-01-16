@@ -1,0 +1,85 @@
+import { StyleSheet } from 'react-native';
+
+const styles = StyleSheet.create({
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  content: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.3,
+    shadowRadius: 30,
+    elevation: 25,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '300',
+    letterSpacing: -0.5,
+    color: '#000',
+    marginBottom: 12,
+  },
+  message: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#737373',
+    marginBottom: 32,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  btnCancel: {
+    flex: 1,
+    height: 52,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnCancelText: {
+    color: '#737373',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  btnConfirm: {
+    flex: 1,
+    height: 52,
+    backgroundColor: '#000',
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  btnConfirmText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+});
+
+export default styles;
