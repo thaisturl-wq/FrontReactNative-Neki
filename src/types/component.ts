@@ -19,4 +19,5 @@ export interface AgendaViewProps {
   isOpen: boolean;
   onClose: () => void;
   events: Event[];
+  onEventClick?: (event: Event) => void;
 }

@@ -166,9 +166,36 @@ const styles = StyleSheet.create({
     paddingVertical: 80,
     gap: 16,
   },
-  emptyStateIcon: {
-    fontSize: 56,
-    marginBottom: 8,
+  emptyIconContainer: {
+    marginBottom: 16,
+  },
+  emptyIconCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 2,
+    borderColor: '#e5e5e5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  emptyIconLine1: {
+    width: 60,
+    height: 3,
+    backgroundColor: '#e5e5e5',
+    borderRadius: 2,
+  },
+  emptyIconLine2: {
+    width: 48,
+    height: 3,
+    backgroundColor: '#e5e5e5',
+    borderRadius: 2,
+  },
+  emptyIconLine3: {
+    width: 36,
+    height: 3,
+    backgroundColor: '#e5e5e5',
+    borderRadius: 2,
   },
   emptyStateTitle: {
     fontSize: 18,

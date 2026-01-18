@@ -127,6 +127,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#000',
   },
+  passwordContainer: {
+    position: 'relative',
+    width: '100%',
+  },
+  inputPassword: {
+    width: '100%',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingRight: 48,
+    backgroundColor: '#f9f9f9',
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    borderRadius: 16,
+    fontSize: 14,
+    color: '#000',
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 16,
+    top: 16,
+    padding: 4,
+  },
+  eyeText: {
+    fontSize: 20,
+    color: '#737373',
+  },
   inputDisabled: {
     backgroundColor: '#f5f5f5',
     color: '#999',

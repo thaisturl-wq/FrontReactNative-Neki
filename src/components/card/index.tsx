@@ -4,10 +4,8 @@ import type { EventCardProps } from '../../types/component';
 import styles from './style';
 
 const EventCard: React.FC<EventCardProps> = ({ event, onEdit, onDelete, style }) => {
-  // Formatar data
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string): string => {
     try {
-      // Se a data estiver no formato DD/MM/YYYY
       if (dateString.includes('/')) {
         const parts = dateString.split('/');
         if (parts.length === 3) {

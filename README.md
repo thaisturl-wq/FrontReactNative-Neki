@@ -1,54 +1,187 @@
-# Sistema de Gestão de Eventos - Versão Local
+# NEKI Event Manager - React Native App
+
+Aplicativo mobile para gerenciamento de eventos corporativos desenvolvido com React Native, Expo e TypeScript.
 
 ## 📱 Sobre o Projeto
 
-Aplicativo React Native para gerenciamento de eventos corporativos, funcionando **100% offline** sem necessidade de backend.
-
-## 🔑 Credenciais de Acesso
-
-Para acessar o sistema, use as seguintes credenciais:
-
-**Email:** `admin@eventos.com`  
-**Senha:** `Admin@2026`
+Sistema completo de gestão de eventos com autenticação JWT, CRUD de eventos, calendário interativo e agenda personalizada. O aplicativo oferece uma interface moderna, minimalista e intuitiva seguindo os padrões de design preto e branco.
 
 ## ✨ Funcionalidades
 
-- ✅ **Autenticação Local**: Login seguro com validação de credenciais
-- ✅ **Gerenciamento de Eventos**: Criar, editar, visualizar e excluir eventos
-- ✅ **10 Eventos Pré-populados**: Sistema já vem com eventos de exemplo
-- ✅ **Armazenamento Local**: Todos os dados salvos no dispositivo usando AsyncStorage
-- ✅ **Perfil de Usuário**: Visualização e edição de perfil
-- ✅ **Alteração de Senha**: Mudança de senha com validação
-- ✅ **Agenda Visual**: Visualização de eventos em formato de agenda
-- ✅ **Calendário**: Visualização de eventos no calendário
-- ✅ **Modo Offline Completo**: Funciona sem conexão com internet
+### Autenticação
+- Sistema de login com JWT Bearer Token
+- Cadastro de novos usuários com validação completa
+- Logout seguro com limpeza de tokens
+- "Lembrar senha" com persistência local
 
-## 🎯 Eventos Pré-populados
+### Gestão de Eventos
+- **Criar eventos** com título, data, localização e imagem
+- **Editar eventos** (apenas data e localização por restrição da API)
+- **Excluir eventos** com modal de confirmação
+- **Busca em tempo real** por título, descrição ou localização
+- Validação de data (impede criação de eventos no passado)
 
-O sistema já vem com 10 eventos corporativos:
+### Visualizações
+- **Dashboard**: Grid de cards com eventos
+- **Calendário**: Visualização mensal com marcação de eventos
+- **Agenda**: Lista cronológica de eventos futuros
 
-1. **Reunião Executiva Q1 2026** - São Paulo, SP (15/01/2026)
-2. **Workshop de Inovação Tecnológica** - Rio de Janeiro, RJ (22/01/2026)
-3. **Lançamento Produto Alpha** - Belo Horizonte, MG (28/01/2026)
-4. **Treinamento Técnico - Equipe** - Curitiba, PR (05/02/2026)
-5. **Evento de Networking Executivo** - Florianópolis, SC (12/02/2026)
-6. **Revisão Estratégica Anual** - Porto Alegre, RS (19/02/2026)
-7. **Conferência de Vendas 2026** - São Paulo, SP (26/02/2026)
-8. **Summit de Transformação Digital** - Brasília, DF (05/03/2026)
-9. **Encontro de Desenvolvedores** - Recife, PE (12/03/2026)
-10. **Apresentação de Resultados Q1** - São Paulo, SP (25/03/2026)
+### Validações
+- **Cadastro**: Nome mínimo 3 caracteres, email válido, senha com 8+ caracteres, maiúscula e caractere especial
+- **Login**: Email e senha obrigatórios com formato válido
+- **Eventos**: Todos os campos obrigatórios, data no formato DD/MM/YYYY, URL de imagem válida
 
-## 🚀 Como Usar
+## 🚀 Tecnologias
 
-### 1. Instalação
+- **React Native** 0.81.5
+- **Expo** ~54.0.31
+- **TypeScript** ~5.9.2
+- **React Navigation** (Native Stack)
+- **Axios** para integração com API REST
+- **AsyncStorage** para persistência local
+- **React Native Safe Area Context**
 
+## 📋 Pré-requisitos
+
+- Node.js 18+ e npm
+- Expo CLI (`npm install -g expo-cli`)
+- Expo Go instalado no dispositivo móvel (Android/iOS)
+- Backend da API rodando em `http://192.168.1.3:8080`
+
+## 🔧 Instalação
+
+1. Clone o repositório:
 ```bash
-# Instalar dependências
-npm install
+git clone <repository-url>
+cd FrontReactNative-Neki
+```
 
-# Iniciar o app
+2. Instale as dependências:
+```bash
+npm install
+```
+
+3. Configure a URL da API:
+Edite `src/service/api.ts` e altere o `BASE_URL` para o IP da sua rede local:
+```typescript
+const BASE_URL = 'http://SEU_IP:8080';
+```
+
+4. Inicie o servidor Expo:
+```bash
 npm start
 ```
+
+5. Escaneie o QR Code com o Expo Go no seu dispositivo móvel
+
+## 📁 Estrutura do Projeto
+
+```
+src/
+├── assets/              # Imagens e sons
+├── components/          # Componentes reutilizáveis
+│   ├── agendaview/     # Lista de eventos cronológica
+│   ├── calendar/       # Calendário mensal
+│   ├── card/           # Card de evento
+│   ├── confirmmodal/   # Modal de confirmação
+│   ├── eventdetail/    # Detalhes do evento
+│   ├── modal/          # Modal de criar/editar evento
+│   ├── profilemodal/   # Modal de perfil do usuário
+│   └── toast/          # Notificações toast
+├── config/             # Configurações e credenciais
+├── context/            # Context API (AuthContext)
+├── pages/              # Telas principais
+│   ├── dashboard/      # Dashboard principal
+│   ├── login/          # Tela de login
+│   └── register/       # Tela de cadastro
+├── routes/             # Configuração de navegação
+├── service/            # Serviços de API
+│   ├── api.ts          # Configuração Axios
+│   └── eventService.ts # CRUD de eventos
+└── types/              # Definições TypeScript
+```
+
+## 🔐 Autenticação
+
+O app utiliza JWT Bearer Token para autenticação:
+
+1. Login envia credenciais para `POST /users/login`
+2. Backend retorna `{ token, user }`
+3. Token é armazenado no AsyncStorage
+4. Interceptor Axios injeta `Authorization: Bearer <token>` em todas as requisições
+5. Logout remove token e limpa storage
+
+## 🌐 Integração com API
+
+### Endpoints utilizados
+
+```
+POST   /users          - Cadastro de usuário
+POST   /users/login    - Autenticação
+GET    /events         - Listar eventos
+POST   /events         - Criar evento
+PUT    /events/:id     - Atualizar evento (apenas date e location)
+DELETE /events/:id     - Deletar evento
+```
+
+### Mapeamento de Campos
+
+| Backend  | Frontend  |
+|----------|-----------|
+| name     | title     |
+| image    | imageUrl  |
+| date     | date      |
+| location | location  |
+
+**Formato de data**: YYYY-MM-DD (ISO 8601)
+
+## 📝 Scripts Disponíveis
+
+```bash
+npm start           # Inicia o Expo Dev Server
+npm run android     # Roda no emulador Android
+npm run ios         # Roda no simulador iOS
+npm run web         # Roda no navegador
+```
+
+## 🎨 Design System
+
+- **Cores principais**: Preto (#000) e Branco (#fff)
+- **Tons de cinza**: #f9f9f9 (background), #e5e5e5 (borda), #737373 (texto secundário)
+- **Tipografia**: Sans-serif com pesos 300, 400, 600, bold
+- **Bordas**: Border radius 16px (inputs e botões), 40px (modais)
+- **Espaçamento**: Sistema de padding/margin múltiplo de 4px
+
+## ⚠️ Restrições Conhecidas
+
+1. **Edição de eventos**: Por limitação da API, apenas `date` e `location` podem ser alterados
+2. **Datas no passado**: Sistema bloqueia criação de eventos com data anterior ao dia atual
+3. **Timeout de API**: Requisições têm timeout de 10 segundos
+4. **Token expiration**: Não há refresh token, usuário precisa fazer login novamente
+
+## 🐛 Troubleshooting
+
+### Erro de conexão com API
+- Verifique se o backend está rodando
+- Confirme que está na mesma rede Wi-Fi
+- Atualize o IP em `src/service/api.ts`
+
+### Expo não conecta
+- Limpe o cache: `expo start -c`
+- Reinstale node_modules: `rm -rf node_modules && npm install`
+
+### Problemas de autenticação
+- Limpe o AsyncStorage: Settings > Apps > Expo Go > Clear Storage
+- Verifique logs do backend para erros de token
+
+## 📄 Licença
+
+Este projeto é parte do programa NEKI e destina-se a fins educacionais.
+
+## 👥 Contribuidores
+
+Desenvolvido durante o programa de capacitação NEKI SERRATEC 2026.
+
 
 ### 2. Primeiro Acesso
 

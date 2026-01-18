@@ -3,7 +3,7 @@ import { Modal, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import type { AgendaViewProps } from '../../types/component';
 import styles from './style';
 
-const AgendaView: React.FC<AgendaViewProps> = ({ isOpen, onClose, events }) => {
+const AgendaView: React.FC<AgendaViewProps> = ({ isOpen, onClose, events, onEventClick }) => {
   
   // Ordenar eventos por data
   const sortedEvents = [...events].sort((a, b) => {
@@ -74,7 +74,17 @@ const AgendaView: React.FC<AgendaViewProps> = ({ isOpen, onClose, events }) => {
               sortedEvents.map((event) => {
                 const { day, month } = formatDateBox(event.date);
                 return (
-                  <View key={event.id} style={styles.item}>
+                  <TouchableOpacity 
+                    key={event.id} 
+                    style={styles.item}
+                    onPress={() => {
+                      if (onEventClick) {
+                        onEventClick(event);
+                        onClose();
+                      }
+                    }}
+                    activeOpacity={0.7}
+                  >
                     <View style={styles.dateBox}>
                       <Text style={styles.day}>{day}</Text>
                       <Text style={styles.month}>{month}</Text>
@@ -82,13 +92,12 @@ const AgendaView: React.FC<AgendaViewProps> = ({ isOpen, onClose, events }) => {
                     
                     <View style={styles.info}>
                       <Text style={styles.eventTitle}>{event.title}</Text>
-                      <Text style={styles.eventDetails}>
-                        {event.location && `📍 ${event.location}`}
-                        {event.location && event.date && ' • '}
-                        {event.date}
-                      </Text>
+                      {event.location && (
+                        <Text style={styles.eventLocation}>📍 {event.location}</Text>
+                      )}
                     </View>
-                  </View>
+                    <Text style={styles.chevron}>›</Text>
+                  </TouchableOpacity>
                 );
               })
             ) : (

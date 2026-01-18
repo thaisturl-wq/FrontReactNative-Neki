@@ -4,14 +4,13 @@ import api from './api';
 
 const STORAGE_KEY = '@events_storage';
 
-// Eventos populados inicialmente
 const INITIAL_EVENTS: Event[] = [
   {
     id: 1,
     adminId: 1,
     title: 'Reunião Executiva Q1 2026',
     description: 'Análise de resultados do primeiro trimestre e definição de metas estratégicas para o próximo período. Participação obrigatória de todos os diretores.',
-    date: '15/01/2026',
+    date: '2026-01-15',
     startTime: '09:00',
     endTime: '11:30',
     location: 'São Paulo, SP - Sede Central',
@@ -22,7 +21,7 @@ const INITIAL_EVENTS: Event[] = [
     adminId: 1,
     title: 'Workshop de Inovação Tecnológica',
     description: 'Sessão colaborativa para desenvolvimento de novas estratégias de produto e discussão de tendências tecnológicas do mercado.',
-    date: '22/01/2026',
+    date: '2026-01-22',
     startTime: '14:00',
     endTime: '18:00',
     location: 'Rio de Janeiro, RJ - Innovation Hub',
@@ -33,7 +32,7 @@ const INITIAL_EVENTS: Event[] = [
     adminId: 1,
     title: 'Lançamento Produto Alpha',
     description: 'Apresentação oficial do novo produto Alpha para stakeholders, parceiros estratégicos e imprensa especializada.',
-    date: '28/01/2026',
+    date: '2026-01-28',
     startTime: '19:00',
     endTime: '22:00',
     location: 'Belo Horizonte, MG - Centro de Convenções',
@@ -44,7 +43,7 @@ const INITIAL_EVENTS: Event[] = [
     adminId: 1,
     title: 'Treinamento Técnico - Equipe',
     description: 'Capacitação técnica intensiva sobre novas ferramentas, processos operacionais e metodologias ágeis.',
-    date: '05/02/2026',
+    date: '2026-02-05',
     startTime: '08:00',
     endTime: '17:00',
     location: 'Curitiba, PR - Centro de Treinamento',
@@ -55,7 +54,7 @@ const INITIAL_EVENTS: Event[] = [
     adminId: 1,
     title: 'Evento de Networking Executivo',
     description: 'Encontro exclusivo com líderes do setor para troca de experiências, discussão de cases de sucesso e oportunidades de parcerias.',
-    date: '12/02/2026',
+    date: '2026-02-12',
     startTime: '18:30',
     endTime: '22:30',
     location: 'Florianópolis, SC - Beach Hotel Resort',
@@ -66,7 +65,7 @@ const INITIAL_EVENTS: Event[] = [
     adminId: 1,
     title: 'Revisão Estratégica Anual',
     description: 'Alinhamento de objetivos corporativos, definição de KPIs e planejamento estratégico com os times de liderança.',
-    date: '19/02/2026',
+    date: '2026-02-19',
     startTime: '09:00',
     endTime: '16:00',
     location: 'Porto Alegre, RS - Hotel Executive',
@@ -77,7 +76,7 @@ const INITIAL_EVENTS: Event[] = [
     adminId: 1,
     title: 'Conferência de Vendas 2026',
     description: 'Apresentação de resultados, premiação das melhores equipes e lançamento das campanhas do ano.',
-    date: '26/02/2026',
+    date: '2026-02-26',
     startTime: '10:00',
     endTime: '18:00',
     location: 'São Paulo, SP - Centro de Eventos',
@@ -88,7 +87,7 @@ const INITIAL_EVENTS: Event[] = [
     adminId: 1,
     title: 'Summit de Transformação Digital',
     description: 'Discussão sobre IA, automação e as novas tendências em transformação digital para o setor corporativo.',
-    date: '05/03/2026',
+    date: '2026-03-05',
     startTime: '08:30',
     endTime: '17:30',
     location: 'Brasília, DF - Centro Internacional',
@@ -99,7 +98,7 @@ const INITIAL_EVENTS: Event[] = [
     adminId: 1,
     title: 'Encontro de Desenvolvedores',
     description: 'Hackathon e workshops práticos sobre as mais recentes tecnologias e frameworks de desenvolvimento.',
-    date: '12/03/2026',
+    date: '2026-03-12',
     startTime: '09:00',
     endTime: '19:00',
     location: 'Recife, PE - Tech Park',
@@ -110,7 +109,7 @@ const INITIAL_EVENTS: Event[] = [
     adminId: 1,
     title: 'Apresentação de Resultados Q1',
     description: 'Balanço financeiro do primeiro trimestre e projeções para os próximos meses. Exclusivo para acionistas.',
-    date: '25/03/2026',
+    date: '2026-03-25',
     startTime: '15:00',
     endTime: '17:00',
     location: 'São Paulo, SP - Auditório Corporativo',
@@ -119,32 +118,25 @@ const INITIAL_EVENTS: Event[] = [
 ];
 
 class EventService {
-  // Inicializa eventos (Não necessário com API real, mantido vazio ou removido)
   async initializeEvents(): Promise<void> {
-    // API real não precisa de inicialização local
+    return;
   }
 
-  // Busca todos os eventos
   async getEvents(): Promise<Event[]> {
     try {
       const response = await api.get('/events');
-      // Mapeando dados do backend para o modelo do frontend se necessário
-      // Backend: id, name, date, location, image
-      // Frontend: id, title, date, location, imageUrl, description...
-
       const backendEvents = response.data;
 
-      // Adaptando campos
       return backendEvents.map((e: any) => ({
         id: e.id,
-        adminId: e.adminId ?? 1, // Fallback se não vier
-        title: e.name, // Mapeia name -> title
+        adminId: e.adminId ?? 1,
+        title: e.name,
         description: e.description || 'Sem descrição',
-        date: e.date, // Formato esperado: YYYY-MM-DD
+        date: e.date,
         startTime: e.startTime || '',
         endTime: e.endTime || '',
         location: e.location,
-        imageUrl: e.image, // Mapeia image -> imageUrl
+        imageUrl: e.image,
       }));
 
     } catch (error) {
@@ -153,17 +145,8 @@ class EventService {
     }
   }
 
-  // Busca um evento específico por ID
   async getEventById(id: number): Promise<Event | null> {
     try {
-      // Como o endpoint /events/{id} não foi explicitamente detalhado na lista de endpoints GET,
-      // mas é padrão REST. Se não existir, podemos filtrar da lista.
-      // Assumindo que podemos filtrar da lista para garantir consistência com o que temos hoje,
-      // ou implementar chamada direta se houver endpoint GET /events/{id}
-
-      // Vamos tentar buscar da lista para garantir performance se a lista já estiver carregada em cache, 
-      // mas aqui é um service stateless. 
-      // Vamos usar a lista completa por enquanto pois a doc só listou GET /events
       const events = await this.getEvents();
       return events.find(event => event.id === id) || null;
     } catch (error) {
@@ -172,14 +155,11 @@ class EventService {
     }
   }
 
-  // Cria um novo evento
   async createEvent(eventData: Omit<Event, 'id'>): Promise<Event> {
     try {
-      // Mapeando payload para o backend
-      // Backend espera: { name, date, location, image }
       const payload = {
         name: eventData.title,
-        date: eventData.date, // Deve estar em YYYY-MM-DD
+        date: eventData.date,
         location: eventData.location,
         image: eventData.imageUrl
       };
@@ -187,12 +167,9 @@ class EventService {
       const response = await api.post('/events', payload);
       const newEvent = response.data;
 
-      // Retorna formato frontend
       return {
         ...eventData,
         id: newEvent.id,
-        // Mantemos os dados locais que enviamos pois o backend pode não retornar tudo
-        // Mas idealmente usamos o retorno.
       } as Event;
     } catch (error) {
       console.error('Erro ao criar evento:', error);
@@ -200,26 +177,20 @@ class EventService {
     }
   }
 
-  // Atualiza um evento existente
   async updateEvent(id: number, eventData: Partial<Event>): Promise<Event | null> {
     try {
-      // Backend permite atualizar apenas date e location
       const payload: any = {};
       if (eventData.date) payload.date = eventData.date;
       if (eventData.location) payload.location = eventData.location;
 
-      // Se houver outros campos que o backend aceita, adicione aqui.
-      // A doc diz: "Envie apenas o que deseja alterar, mas lembre-se que o backend só permite date e location"
-
       const response = await api.put(`/events/${id}`, payload);
-      return response.data; // Assumindo que retorna o evento atualizado
+      return response.data;
     } catch (error) {
       console.error('Erro ao atualizar evento:', error);
       throw error;
     }
   }
 
-  // Deleta um evento
   async deleteEvent(id: number): Promise<boolean> {
     try {
       await api.delete(`/events/${id}`);
@@ -230,9 +201,8 @@ class EventService {
     }
   }
 
-  // Reseta os eventos (Não aplicável API real)
   async resetEvents(): Promise<void> {
-    // No-op
+    return;
   }
 }
 
