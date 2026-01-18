@@ -12,6 +12,7 @@ interface CalendarProps {
 
 const Calendar: React.FC<CalendarProps> = ({ isOpen, onClose, events, onEventClick }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDayEvents, setSelectedDayEvents] = useState<Event[]>([]);
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -24,42 +25,44 @@ const Calendar: React.FC<CalendarProps> = ({ isOpen, onClose, events, onEventCli
     return { daysInMonth, startingDayOfWeek };
   };
 
+  // Função robusta para comparar datas ignorando fuso horário
+  const isSameDay = (dateString: string, year: number, month: number, day: number) => {
+    const [yyyy, mm, dd] = dateString.split('-');
+    return (
+      parseInt(yyyy, 10) === year &&
+      parseInt(mm, 10) - 1 === month &&
+      parseInt(dd, 10) === day
+    );
+  };
+
   const hasEventOnDay = (day: number) => {
     const year = currentDate.getFullYear();
-    const month = currentDate.getMonth() + 1;
-    const dateStr = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
-    
-    return events.some(event => {
-      if (event.date.includes('/')) {
-        return event.date === dateStr;
-      }
-      const eventDate = new Date(event.date);
-      return eventDate.getDate() === day && 
-             eventDate.getMonth() === currentDate.getMonth() &&
-             eventDate.getFullYear() === currentDate.getFullYear();
-    });
+    const month = currentDate.getMonth();
+    return events.some(event => isSameDay(event.date, year, month, day));
   };
 
   const getEventsForDay = (day: number) => {
     const year = currentDate.getFullYear();
-    const month = currentDate.getMonth() + 1;
-    const dateStr = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
-    
-    return events.filter(event => {
-      if (event.date.includes('/')) {
-        return event.date === dateStr;
-      }
-      const eventDate = new Date(event.date);
-      return eventDate.getDate() === day && 
-             eventDate.getMonth() === currentDate.getMonth() &&
-             eventDate.getFullYear() === currentDate.getFullYear();
-    });
+    const month = currentDate.getMonth();
+    return events.filter(event => isSameDay(event.date, year, month, day));
+  };
+
+  const handleDayClick = (day: number) => {
+    const dayEvents = getEventsForDay(day);
+    setSelectedDayEvents(dayEvents);
+  };
+
+  const handleEventSelect = (event: Event) => {
+    if (onEventClick) {
+      onEventClick(event);
+      onClose();
+    }
   };
 
   const renderCalendar = () => {
     const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentDate);
-    const days = [];
-    const weeks = [];
+    const days: React.ReactNode[] = [];
+    const weeks: React.ReactNode[] = [];
 
     // Preencher dias vazios no início
     for (let i = 0; i < startingDayOfWeek; i++) {
@@ -69,26 +72,35 @@ const Calendar: React.FC<CalendarProps> = ({ isOpen, onClose, events, onEventCli
     // Preencher dias do mês
     for (let day = 1; day <= daysInMonth; day++) {
       const hasEvent = hasEventOnDay(day);
-      const dayEvents = getEventsForDay(day);
-      
       days.push(
         <TouchableOpacity
           key={day}
           style={styles.dayCell}
-          onPress={() => {
-            if (hasEvent && onEventClick && dayEvents.length > 0) {
-              onEventClick(dayEvents[0]);
-              onClose();
-            }
-          }}
-          disabled={!hasEvent}
+          onPress={() => handleDayClick(day)}
         >
-          <View style={[styles.dayNumber, hasEvent && styles.dayWithEvent]}>
-            <Text style={[styles.dayText, hasEvent && styles.dayTextWithEvent]}>{day}</Text>
+          <View style={[
+            styles.dayNumber,
+            hasEvent && styles.dayWithEvent
+          ]}>
+            <Text style={[
+              styles.dayText,
+              hasEvent && styles.dayTextWithEvent
+            ]}>
+              {day}
+            </Text>
           </View>
           {hasEvent && <View style={styles.eventDot} />}
         </TouchableOpacity>
       );
+    }
+
+    // Preencher dias vazios no final para completar a última semana
+    const totalCells = days.length;
+    if (totalCells % 7 !== 0) {
+      const emptyCells = 7 - (totalCells % 7);
+      for (let i = 0; i < emptyCells; i++) {
+        days.push(<View key={`empty-end-${i}`} style={styles.dayCell} />);
+      }
     }
 
     // Dividir em semanas
@@ -144,6 +156,41 @@ const Calendar: React.FC<CalendarProps> = ({ isOpen, onClose, events, onEventCli
           <ScrollView style={styles.calendarContainer}>
             {renderCalendar()}
           </ScrollView>
+
+          {selectedDayEvents.length > 0 && (
+            <View style={styles.eventsListContainer}>
+              <Text style={styles.eventsListTitle}>
+                Eventos do dia:
+              </Text>
+              <ScrollView style={styles.eventsList}>
+                {selectedDayEvents.map((event) => {
+                  // Mostra a data do evento formatada corretamente
+                  const eventDate = new Date(event.date);
+                  const formattedDate = `${eventDate.getDate().toString().padStart(2, '0')}/` +
+                    `${(eventDate.getMonth() + 1).toString().padStart(2, '0')}/` +
+                    `${eventDate.getFullYear()}`;
+                  return (
+                    <View key={event.id} style={styles.eventItem}>
+                      <TouchableOpacity
+                        style={{flex: 1}}
+                        onPress={() => handleEventSelect(event)}
+                      >
+                        <Text style={styles.eventItemTitle}>{event.title}</Text>
+                        <Text style={styles.eventItemLocation}>📍 {event.location}</Text>
+                        <Text style={styles.eventItemDate}>Data: {formattedDate}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={{marginLeft: 10, padding: 6, backgroundColor: '#eee', borderRadius: 6}}
+                        onPress={() => handleEventSelect(event)}
+                      >
+                        <Text style={{color: '#007bff'}}>Editar</Text>
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
 
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Text style={styles.closeButtonText}>Fechar</Text>

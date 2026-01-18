@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   },
   weekDaysHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     marginBottom: 12,
   },
   weekDayText: {
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   },
   week: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     marginBottom: 8,
   },
   dayCell: {
@@ -98,6 +98,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     borderRadius: 20,
   },
+  daySelected: {
+    backgroundColor: '#404040',
+    borderWidth: 2,
+    borderColor: '#000',
+  },
   dayText: {
     fontSize: 13,
     fontWeight: '400',
@@ -107,6 +112,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
+  dayTextSelected: {
+    color: '#fff',
+    fontWeight: '700',
+  },
   eventDot: {
     position: 'absolute',
     top: 4,
@@ -115,6 +124,40 @@ const styles = StyleSheet.create({
     height: 5,
     borderRadius: 3,
     backgroundColor: '#fff',
+  },
+  eventsListContainer: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    maxHeight: 180,
+  },
+  eventsListTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 12,
+  },
+  eventsList: {
+    maxHeight: 140,
+  },
+  eventItem: {
+    backgroundColor: '#f9f9f9',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
+  },
+  eventItemTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 4,
+  },
+  eventItemLocation: {
+    fontSize: 12,
+    color: '#666',
   },
   closeButton: {
     marginTop: 20,

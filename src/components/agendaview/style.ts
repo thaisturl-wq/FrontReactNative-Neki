@@ -110,13 +110,29 @@ const styles = StyleSheet.create({
     fontSize: 14.4,
     fontWeight: '700',
     margin: 0,
-    marginBottom: 3.2,
+    marginBottom: 4,
     color: '#000',
+  },
+  eventDate: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 3.2,
+  },
+  eventLocation: {
+    fontSize: 12,
+    color: '#a3a3a3',
+    margin: 0,
   },
   eventDetails: {
     fontSize: 12,
     color: '#a3a3a3',
     margin: 0,
+  },
+  chevron: {
+    fontSize: 24,
+    color: '#d4d4d4',
+    fontWeight: '300',
+    marginLeft: 8,
   },
   empty: {
     textAlign: 'center',

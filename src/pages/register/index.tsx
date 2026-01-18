@@ -41,6 +41,7 @@ const Register: React.FC = () => {
     hasSpecialChar: false,
   });
   const [emailValid, setEmailValid] = useState<boolean>(false);
+  const [nameError, setNameError] = useState<string>('');
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -82,31 +83,41 @@ const Register: React.FC = () => {
     }
   };
 
-  useFocusEffect(
-    React.useCallback(() => {
-      const loadDefaultCredentials = async () => {
-        const savedEmail = await AsyncStorage.getItem('userEmail');
-        if (!savedEmail) {
-          setName('Admin Demo');
-          setEmail('admin@demo.com');
-          setPassword('123456');
-          setConfirmPassword('123456');
-        }
-      };
-      loadDefaultCredentials();
-    }, [])
-  );
-
   const handleSubmit = async (): Promise<void> => {
     setError(null);
+
+    if (!name.trim()) {
+      setError('Por favor, preencha seu nome completo.');
+      return;
+    }
+
+    if (name.trim().length < 3) {
+      setError('O nome deve ter no mínimo 3 caracteres.');
+      return;
+    }
+
+    if (!email.trim()) {
+      setError('Por favor, insira seu e-mail.');
+      return;
+    }
 
     if (!validateEmail(email)) {
       setError('Por favor, insira um e-mail válido.');
       return;
     }
 
+    if (!password) {
+      setError('Por favor, crie uma senha.');
+      return;
+    }
+
     if (!validatePassword(password)) {
       setError('A senha deve ter mínimo 8 caracteres, 1 letra maiúscula e 1 caractere especial.');
+      return;
+    }
+
+    if (!confirmPassword) {
+      setError('Por favor, confirme sua senha.');
       return;
     }
 
@@ -117,77 +128,53 @@ const Register: React.FC = () => {
 
     setLoading(true);
     try {
-      // Chamada real à API
-      console.log('[Register] Iniciando cadastro para:', email);
       await api.post('/users', {
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
         password
       });
 
-      // Cadastro bem-sucedido
-      console.log('[Register] Cadastro realizado com sucesso! Tentando login automático...');
-
-      try {
-        // Tenta fazer login automático
-        const loginResponse = await api.post('/users/login', {
-          email,
-          password
-        });
-
-        const { token, user } = loginResponse.data;
-        await signIn({ token, user });
-
-        const admin = { id: user.id, name: user.name, email: user.email };
-
-        setSuccess(true);
-        setTimeout(() => {
-          navigation.navigate('Dashboard', { admin });
-        }, 1500);
-
-      } catch (loginErr) {
-        console.warn('[Register] Cadastro ok, mas login automático falhou. Redirecionando para tela de Login.');
-        setSuccess(true);
-        setTimeout(() => {
-          navigation.navigate('Login');
-        }, 1500);
-      }
+      setSuccess(true);
+      setTimeout(() => {
+        navigation.navigate('Login');
+      }, 1500);
 
     } catch (err: any) {
-      // Tenta extrair mensagem de erro do backend
-      let errorMessage = 'Falha ao processar cadastro.';
+      let errorMessage = 'Falha ao processar cadastro. Tente novamente.';
 
       if (err.response) {
-        // Erro de resposta do servidor (4xx, 5xx)
-        console.error('=== ERRO DE RESPOSTA DO BACKEND ===');
-        console.error('Status:', err.response.status);
-        console.error('Status Text:', err.response.statusText);
-        console.error('Headers:', JSON.stringify(err.response.headers, null, 2));
-        console.error('Data (tipo):', typeof err.response.data);
-        console.error('Data (conteúdo):', JSON.stringify(err.response.data, null, 2));
-        console.error('===================================');
+        const status = err.response.status;
+        const data = err.response.data;
 
-        if (err.response.data?.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.response.data?.error) {
-          errorMessage = err.response.data.error;
-        } else if (typeof err.response.data === 'string') {
-          errorMessage = err.response.data;
-        } else {
-          errorMessage = `Erro ${err.response.status}: ${err.response.statusText || 'Erro no servidor'}`;
+        if (status === 400) {
+          if (data?.message) {
+            errorMessage = data.message;
+          } else if (data?.error) {
+            errorMessage = data.error;
+          } else {
+            errorMessage = 'Dados inválidos. Verifique as informações fornecidas.';
+          }
+        } else if (status === 409 || (data?.message && data.message.toLowerCase().includes('já existe'))) {
+          errorMessage = 'Este e-mail já está cadastrado. Tente fazer login ou use outro e-mail.';
+        } else if (status === 422) {
+          errorMessage = 'Dados inválidos. Verifique todos os campos.';
+        } else if (status >= 500) {
+          errorMessage = 'Erro no servidor. Por favor, tente novamente em alguns instantes.';
+        } else if (typeof data === 'string') {
+          errorMessage = data;
+        } else if (data?.message) {
+          errorMessage = data.message;
+        } else if (data?.error) {
+          errorMessage = data.error;
         }
       } else if (err.request) {
-        // Requisição foi feita mas não houve resposta
-        console.error('Erro de conexão:', err.request);
-        errorMessage = 'Erro de conexão com o servidor. Verifique se o backend está rodando.';
-      } else {
-        // Erro ao configurar a requisição
-        console.error('Erro:', err.message);
+        errorMessage = 'Não foi possível conectar ao servidor. Verifique sua conexão com a internet.';
+      } else if (err.message) {
         errorMessage = err.message;
       }
 
       setError(errorMessage);
-      console.error('Erro de registro:', err);
+      console.error('[Register] Erro:', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -230,13 +217,25 @@ const Register: React.FC = () => {
                 <View style={styles.field}>
                   <Text style={styles.label}>Nome Completo</Text>
                   <TextInput
-                    style={[styles.input, nameFocused && styles.inputFocused]}
+                    style={[styles.input, nameFocused && styles.inputFocused, nameError && styles.inputError]}
                     placeholder="Como devemos chamá-lo?"
                     value={name}
-                    onChangeText={setName}
+                    onChangeText={(text) => {
+                      setName(text);
+                      if (text.trim() && text.trim().length < 3) {
+                        setNameError('Nome muito curto');
+                      } else {
+                        setNameError('');
+                      }
+                    }}
                     onFocus={() => setNameFocused(true)}
                     onBlur={() => setNameFocused(false)}
                   />
+                  {name.trim() && name.trim().length >= 3 ? (
+                    <Text style={styles.fieldSuccess}>✓ Nome válido</Text>
+                  ) : nameError ? (
+                    <Text style={styles.fieldError}>{nameError}</Text>
+                  ) : null}
                 </View>
 
                 <View style={styles.field}>

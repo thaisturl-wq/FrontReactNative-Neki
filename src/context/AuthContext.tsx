@@ -32,7 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (storageUser && storageToken) {
                 setUser(JSON.parse(storageUser));
                 setToken(storageToken);
-                // Configura o token nas requisições do axios caso já exista
+
                 api.defaults.headers.common['Authorization'] = storageToken.startsWith('Bearer ')
                     ? storageToken
                     : `Bearer ${storageToken}`;
@@ -54,7 +54,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await AsyncStorage.setItem('user_data', JSON.stringify(user));
         await AsyncStorage.setItem('token', formattedToken);
 
-        // Facilitar transição de código legado que ainda usa 'adminId'
         await AsyncStorage.setItem('adminId', user.id.toString());
         await AsyncStorage.setItem('userName', user.name);
         await AsyncStorage.setItem('userEmail', user.email);
@@ -64,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await AsyncStorage.clear();
         setUser(null);
         setToken(null);
-        api.defaults.headers.common['Authorization'] = '';
+        delete api.defaults.headers.common['Authorization'];
     }
 
     return (

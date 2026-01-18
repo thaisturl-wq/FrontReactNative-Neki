@@ -26,7 +26,6 @@ const Dashboard: React.FC = () => {
   const route = useRoute<DashboardRouteProp>();
   const { signOut, user: authUser } = useAuth();
 
-  // Usa o admin da rota ou o usuário do contexto
   const admin = route.params?.admin || authUser;
 
   const [events, setEvents] = useState<Event[]>([]);
@@ -50,9 +49,7 @@ const Dashboard: React.FC = () => {
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
-      // Inicializa os eventos se necessário
       await eventService.initializeEvents();
-      // Busca eventos do storage local
       const data = await eventService.getEvents();
       setEvents(data);
     } catch (err) {
@@ -157,7 +154,13 @@ const Dashboard: React.FC = () => {
             />
           ) : (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyStateIcon}>📋</Text>
+              <View style={styles.emptyIconContainer}>
+                <View style={styles.emptyIconCircle}>
+                  <View style={styles.emptyIconLine1} />
+                  <View style={styles.emptyIconLine2} />
+                  <View style={styles.emptyIconLine3} />
+                </View>
+              </View>
               <Text style={styles.emptyStateTitle}>Nenhum evento ainda</Text>
               <Text style={styles.emptyStateText}>Comece criando seu primeiro evento corporativo</Text>
               <TouchableOpacity
@@ -189,6 +192,9 @@ const Dashboard: React.FC = () => {
         isOpen={isAgendaOpen}
         onClose={() => setIsAgendaOpen(false)}
         events={events}
+        onEventClick={(event) => {
+          openEdit(event);
+        }}
       />
 
       <ProfileModal

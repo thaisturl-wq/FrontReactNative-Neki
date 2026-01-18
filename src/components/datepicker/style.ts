@@ -1,0 +1,178 @@
+import { StyleSheet } from 'react-native';
+
+const styles = StyleSheet.create({
+  input: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#d4d4d4',
+    borderRadius: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    minHeight: 48,
+  },
+  inputError: {
+    borderColor: '#000000',
+    borderWidth: 2,
+  },
+  inputText: {
+    fontSize: 15,
+    color: '#000000',
+    flex: 1,
+  },
+  placeholder: {
+    color: '#a0a0a0',
+  },
+  calendarIcon: {
+    fontSize: 18,
+    marginLeft: 8,
+    opacity: 0.6,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 24,
+    width: '88%',
+    maxWidth: 380,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e8e8e8',
+  },
+  headerCenter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  headerText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
+    marginHorizontal: 20,
+    letterSpacing: 0.3,
+  },
+  navButton: {
+    padding: 10,
+    borderRadius: 6,
+    backgroundColor: '#f5f5f5',
+    minWidth: 40,
+    alignItems: 'center',
+  },
+  navText: {
+    fontSize: 18,
+    color: '#000000',
+    fontWeight: '600',
+  },
+  monthNav: {
+    padding: 6,
+  },
+  monthNavText: {
+    fontSize: 14,
+    color: '#404040',
+    fontWeight: '500',
+  },
+  calendar: {
+    marginBottom: 20,
+  },
+  weekDays: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  weekDayText: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#808080',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  daysGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 2,
+  },
+  dayCell: {
+    width: '13.5%',
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 1,
+    borderRadius: 8,
+  },
+  dayCellSelected: {
+    backgroundColor: '#000000',
+  },
+  dayText: {
+    fontSize: 15,
+    color: '#000000',
+    fontWeight: '500',
+  },
+  dayTextSelected: {
+    color: '#ffffff',
+    fontWeight: '700',
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 16,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d4d4d4',
+    alignItems: 'center',
+  },
+  cancelText: {
+    fontSize: 15,
+    color: '#404040',
+    fontWeight: '600',
+  },
+  confirmButton: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    backgroundColor: '#000000',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  confirmButtonDisabled: {
+    backgroundColor: '#d4d4d4',
+  },
+  confirmText: {
+    fontSize: 15,
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+});
+
+export default styles;

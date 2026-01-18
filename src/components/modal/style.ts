@@ -134,6 +134,42 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
   },
+  editModeBanner: {
+    backgroundColor: '#000',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#000',
+  },
+  editModeTitle: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    marginBottom: 6,
+  },
+  editModeText: {
+    color: '#e5e5e5',
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  errorBanner: {
+    backgroundColor: '#f9f9f9',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+  },
+  errorText: {
+    color: '#000',
+    fontSize: 13,
+    lineHeight: 18,
+  },
 });
 
 export default styles;

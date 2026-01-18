@@ -70,7 +70,6 @@ const Login: React.FC = () => {
     React.useCallback(() => {
       const initializeCredentials = async (): Promise<void> => {
         try {
-          // Verifica se já existe usuário cadastrado para preenchimento automático
           const savedEmail = await AsyncStorage.getItem('userEmail');
 
           if (!savedEmail) {
@@ -92,21 +91,34 @@ const Login: React.FC = () => {
   const handleSubmit = async (): Promise<void> => {
     setError(null);
 
-    if (!email || !password) {
-      setError('Por favor, preencha todos os campos.');
+    if (!email.trim()) {
+      setError('Por favor, insira seu e-mail.');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError('Por favor, insira um e-mail válido.');
+      return;
+    }
+
+    if (!password) {
+      setError('Por favor, insira sua senha.');
       return;
     }
 
     setLoading(true);
     try {
       const response = await api.post('/users/login', {
-        email,
+        email: email.trim().toLowerCase(),
         password
       });
 
       const { token, user } = response.data;
 
-      // Utiliza o hook global de autenticação
+      if (!token || !user) {
+        throw new Error('Resposta de login inválida');
+      }
+
       await signIn({ token, user });
 
       if (rememberPassword) {
@@ -122,12 +134,37 @@ const Login: React.FC = () => {
 
       navigation.navigate('Dashboard', { admin: adminData });
     } catch (err: any) {
-      console.error('Erro no login:', err);
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        setError('E-mail ou senha incorretos.');
-      } else {
-        setError('Erro ao conectar com o servidor. Verifique se o backend está rodando.');
+      let errorMessage = 'Erro ao realizar login. Tente novamente.';
+
+      if (err.response) {
+        const status = err.response.status;
+        const data = err.response.data;
+
+        if (status === 401 || status === 403) {
+          errorMessage = 'E-mail ou senha incorretos.';
+        } else if (status === 404) {
+          errorMessage = 'Usuário não encontrado. Verifique o e-mail ou crie uma nova conta.';
+        } else if (status === 400) {
+          if (data?.message) {
+            errorMessage = data.message;
+          } else {
+            errorMessage = 'Dados inválidos. Verifique suas credenciais.';
+          }
+        } else if (status >= 500) {
+          errorMessage = 'Erro no servidor. Por favor, tente novamente em alguns instantes.';
+        } else if (data?.message) {
+          errorMessage = data.message;
+        } else if (data?.error) {
+          errorMessage = data.error;
+        }
+      } else if (err.request) {
+        errorMessage = 'Não foi possível conectar ao servidor. Verifique sua conexão com a internet.';
+      } else if (err.message) {
+        errorMessage = err.message;
       }
+
+      setError(errorMessage);
+      console.error('[Login] Erro:', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -240,9 +277,6 @@ const Login: React.FC = () => {
                 <Text style={styles.link} onPress={() => navigation.navigate('Register')}>
                   Criar Nova Conta
                 </Text>
-              </Text>
-              <Text style={[styles.footerText, { marginTop: 16, fontSize: 10, color: '#d4d4d4' }]}>
-                Credenciais padrão: {DEFAULT_CREDENTIALS.email} / {DEFAULT_CREDENTIALS.password}
               </Text>
             </View>
           </View>
