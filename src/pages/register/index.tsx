@@ -8,6 +8,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from './style';
 import type { RootStackParamList } from '../../types/navigation';
 import ClockIcon from '../../components/ClockIcon';
+import api from '../../service/api';
+import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 const isMobile = width < 480;
@@ -16,6 +18,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const Register: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { signIn } = useAuth();
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -70,7 +73,7 @@ const Register: React.FC = () => {
       hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(text),
     };
     setPasswordRequirements(requirements);
-    
+
     const isValid = requirements.minLength && requirements.hasUpperCase && requirements.hasSpecialChar;
     if (text && !isValid) {
       setPasswordError('Preencha todos os requisitos');
@@ -84,7 +87,6 @@ const Register: React.FC = () => {
       const loadDefaultCredentials = async () => {
         const savedEmail = await AsyncStorage.getItem('userEmail');
         if (!savedEmail) {
-          // Carregar credencial padrão
           setName('Admin Demo');
           setEmail('admin@demo.com');
           setPassword('123456');
@@ -115,17 +117,77 @@ const Register: React.FC = () => {
 
     setLoading(true);
     try {
-      // Registro local sem backend
-      await AsyncStorage.setItem('userEmail', email);
-      await AsyncStorage.setItem('userPassword', password);
-      await AsyncStorage.setItem('userName', name);
-      
-      setSuccess(true);
-      setTimeout(() => navigation.navigate('Login'), 2000);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Falha ao processar cadastro.';
+      // Chamada real à API
+      console.log('[Register] Iniciando cadastro para:', email);
+      await api.post('/users', {
+        name,
+        email,
+        password
+      });
+
+      // Cadastro bem-sucedido
+      console.log('[Register] Cadastro realizado com sucesso! Tentando login automático...');
+
+      try {
+        // Tenta fazer login automático
+        const loginResponse = await api.post('/users/login', {
+          email,
+          password
+        });
+
+        const { token, user } = loginResponse.data;
+        await signIn({ token, user });
+
+        const admin = { id: user.id, name: user.name, email: user.email };
+
+        setSuccess(true);
+        setTimeout(() => {
+          navigation.navigate('Dashboard', { admin });
+        }, 1500);
+
+      } catch (loginErr) {
+        console.warn('[Register] Cadastro ok, mas login automático falhou. Redirecionando para tela de Login.');
+        setSuccess(true);
+        setTimeout(() => {
+          navigation.navigate('Login');
+        }, 1500);
+      }
+
+    } catch (err: any) {
+      // Tenta extrair mensagem de erro do backend
+      let errorMessage = 'Falha ao processar cadastro.';
+
+      if (err.response) {
+        // Erro de resposta do servidor (4xx, 5xx)
+        console.error('=== ERRO DE RESPOSTA DO BACKEND ===');
+        console.error('Status:', err.response.status);
+        console.error('Status Text:', err.response.statusText);
+        console.error('Headers:', JSON.stringify(err.response.headers, null, 2));
+        console.error('Data (tipo):', typeof err.response.data);
+        console.error('Data (conteúdo):', JSON.stringify(err.response.data, null, 2));
+        console.error('===================================');
+
+        if (err.response.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.response.data?.error) {
+          errorMessage = err.response.data.error;
+        } else if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        } else {
+          errorMessage = `Erro ${err.response.status}: ${err.response.statusText || 'Erro no servidor'}`;
+        }
+      } else if (err.request) {
+        // Requisição foi feita mas não houve resposta
+        console.error('Erro de conexão:', err.request);
+        errorMessage = 'Erro de conexão com o servidor. Verifique se o backend está rodando.';
+      } else {
+        // Erro ao configurar a requisição
+        console.error('Erro:', err.message);
+        errorMessage = err.message;
+      }
+
       setError(errorMessage);
-      console.error('Erro de registro:', errorMessage);
+      console.error('Erro de registro:', err);
     } finally {
       setLoading(false);
     }
@@ -139,146 +201,146 @@ const Register: React.FC = () => {
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-      <View style={styles.card}>
-        <View style={styles.header}>
-          <View style={styles.logoIcon}>
-            <ClockIcon size={56} color="#000000" />
-          </View>
-          <Text style={styles.brand}>Nova Credencial</Text>
-          <Text style={styles.title}>Crie seu perfil</Text>
-        </View>
-
-        {success ? (
-          <View style={styles.successState}>
-            <View style={styles.successIcon}>
-              <Svg style={styles.iconCheck} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <Path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </Svg>
-            </View>
-            <Text style={styles.successTitle}>Sucesso absoluto!</Text>
-            <Text style={styles.successText}>Suas credenciais foram registradas. Redirecionando...</Text>
-          </View>
-        ) : (
-          <View style={styles.form}>
-            <View style={styles.field}>
-              <Text style={styles.label}>Nome Completo</Text>
-              <TextInput
-                style={[styles.input, nameFocused && styles.inputFocused]}
-                placeholder="Como devemos chamá-lo?"
-                value={name}
-                onChangeText={setName}
-                onFocus={() => setNameFocused(true)}
-                onBlur={() => setNameFocused(false)}
-              />
+          <View style={styles.card}>
+            <View style={styles.header}>
+              <View style={styles.logoIcon}>
+                <ClockIcon size={56} color="#000000" />
+              </View>
+              <Text style={styles.brand}>Nova Credencial</Text>
+              <Text style={styles.title}>Crie seu perfil</Text>
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>E-mail Administrativo</Text>
-              <TextInput
-                style={[styles.input, emailFocused && styles.inputFocused, emailError && styles.inputError]}
-                placeholder="admin@exemplo.com"
-                value={email}
-                onChangeText={handleEmailChange}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                onFocus={() => setEmailFocused(true)}
-                onBlur={() => setEmailFocused(false)}
-              />
-              {email && emailValid ? (
-                <Text style={styles.fieldSuccess}>✓ E-mail válido</Text>
-              ) : emailError ? (
-                <Text style={styles.fieldError}>{emailError}</Text>
-              ) : null}
-            </View>
-
-            <View style={[styles.formRow, isMobile && styles.formRowMobile]}>
-              <View style={styles.field}>
-                <Text style={styles.label}>Senha</Text>
-                <View style={styles.passwordContainer}>
-                  <TextInput
-                    style={[styles.inputPassword, passwordFocused && styles.inputFocused, passwordError && styles.inputError]}
-                    placeholder="••••••••"
-                    value={password}
-                    onChangeText={handlePasswordChange}
-                    secureTextEntry={!showPassword}
-                    onFocus={() => setPasswordFocused(true)}
-                    onBlur={() => setPasswordFocused(false)}
-                  />
-                  <TouchableOpacity
-                    style={styles.eyeIcon}
-                    onPress={() => setShowPassword(!showPassword)}
-                  >
-                    <Text style={styles.eyeText}>{showPassword ? '○' : '●'}</Text>
-                  </TouchableOpacity>
+            {success ? (
+              <View style={styles.successState}>
+                <View style={styles.successIcon}>
+                  <Svg style={styles.iconCheck} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <Path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </Svg>
                 </View>
-                {password ? (
-                  <View style={styles.requirementsContainer}>
-                    <Text style={[styles.requirement, passwordRequirements.minLength && styles.requirementMet]}>
-                      {passwordRequirements.minLength ? '✓' : '○'} Mínimo 8 caracteres
-                    </Text>
-                    <Text style={[styles.requirement, passwordRequirements.hasUpperCase && styles.requirementMet]}>
-                      {passwordRequirements.hasUpperCase ? '✓' : '○'} 1 letra maiúscula
-                    </Text>
-                    <Text style={[styles.requirement, passwordRequirements.hasSpecialChar && styles.requirementMet]}>
-                      {passwordRequirements.hasSpecialChar ? '✓' : '○'} 1 caractere especial (!@#$%...)
-                    </Text>
+                <Text style={styles.successTitle}>Sucesso absoluto!</Text>
+                <Text style={styles.successText}>Suas credenciais foram registradas. Redirecionando...</Text>
+              </View>
+            ) : (
+              <View style={styles.form}>
+                <View style={styles.field}>
+                  <Text style={styles.label}>Nome Completo</Text>
+                  <TextInput
+                    style={[styles.input, nameFocused && styles.inputFocused]}
+                    placeholder="Como devemos chamá-lo?"
+                    value={name}
+                    onChangeText={setName}
+                    onFocus={() => setNameFocused(true)}
+                    onBlur={() => setNameFocused(false)}
+                  />
+                </View>
+
+                <View style={styles.field}>
+                  <Text style={styles.label}>E-mail Administrativo</Text>
+                  <TextInput
+                    style={[styles.input, emailFocused && styles.inputFocused, emailError && styles.inputError]}
+                    placeholder="admin@exemplo.com"
+                    value={email}
+                    onChangeText={handleEmailChange}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    onFocus={() => setEmailFocused(true)}
+                    onBlur={() => setEmailFocused(false)}
+                  />
+                  {email && emailValid ? (
+                    <Text style={styles.fieldSuccess}>✓ E-mail válido</Text>
+                  ) : emailError ? (
+                    <Text style={styles.fieldError}>{emailError}</Text>
+                  ) : null}
+                </View>
+
+                <View style={[styles.formRow, isMobile && styles.formRowMobile]}>
+                  <View style={styles.field}>
+                    <Text style={styles.label}>Senha</Text>
+                    <View style={styles.passwordContainer}>
+                      <TextInput
+                        style={[styles.inputPassword, passwordFocused && styles.inputFocused, passwordError && styles.inputError]}
+                        placeholder="••••••••"
+                        value={password}
+                        onChangeText={handlePasswordChange}
+                        secureTextEntry={!showPassword}
+                        onFocus={() => setPasswordFocused(true)}
+                        onBlur={() => setPasswordFocused(false)}
+                      />
+                      <TouchableOpacity
+                        style={styles.eyeIcon}
+                        onPress={() => setShowPassword(!showPassword)}
+                      >
+                        <Text style={styles.eyeText}>{showPassword ? '○' : '●'}</Text>
+                      </TouchableOpacity>
+                    </View>
+                    {password ? (
+                      <View style={styles.requirementsContainer}>
+                        <Text style={[styles.requirement, passwordRequirements.minLength && styles.requirementMet]}>
+                          {passwordRequirements.minLength ? '✓' : '○'} Mínimo 8 caracteres
+                        </Text>
+                        <Text style={[styles.requirement, passwordRequirements.hasUpperCase && styles.requirementMet]}>
+                          {passwordRequirements.hasUpperCase ? '✓' : '○'} 1 letra maiúscula
+                        </Text>
+                        <Text style={[styles.requirement, passwordRequirements.hasSpecialChar && styles.requirementMet]}>
+                          {passwordRequirements.hasSpecialChar ? '✓' : '○'} 1 caractere especial (!@#$%...)
+                        </Text>
+                      </View>
+                    ) : null}
                   </View>
-                ) : null}
-              </View>
-              <View style={styles.field}>
-                <Text style={styles.label}>Confirmar</Text>
-                <View style={styles.passwordContainer}>
-                  <TextInput
-                    style={[styles.inputPassword, confirmFocused && styles.inputFocused]}
-                    placeholder="••••••••"
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                    secureTextEntry={!showConfirmPassword}
-                    onFocus={() => setConfirmFocused(true)}
-                    onBlur={() => setConfirmFocused(false)}
-                  />
-                  <TouchableOpacity
-                    style={styles.eyeIcon}
-                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    <Text style={styles.eyeText}>{showConfirmPassword ? '○' : '●'}</Text>
-                  </TouchableOpacity>
+                  <View style={styles.field}>
+                    <Text style={styles.label}>Confirmar</Text>
+                    <View style={styles.passwordContainer}>
+                      <TextInput
+                        style={[styles.inputPassword, confirmFocused && styles.inputFocused]}
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChangeText={setConfirmPassword}
+                        secureTextEntry={!showConfirmPassword}
+                        onFocus={() => setConfirmFocused(true)}
+                        onBlur={() => setConfirmFocused(false)}
+                      />
+                      <TouchableOpacity
+                        style={styles.eyeIcon}
+                        onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        <Text style={styles.eyeText}>{showConfirmPassword ? '○' : '●'}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
+
+                {error && <Text style={styles.errorMessage}>{error}</Text>}
+
+                <TouchableOpacity
+                  style={[styles.button, loading && styles.buttonDisabled]}
+                  onPress={handleSubmit}
+                  disabled={loading}
+                >
+                  <Text style={styles.buttonText}>
+                    {loading ? 'Processando...' : 'Finalizar Cadastro'}
+                  </Text>
+                </TouchableOpacity>
               </View>
-            </View>
+            )}
 
-            {error && <Text style={styles.errorMessage}>{error}</Text>}
-
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleSubmit}
-              disabled={loading}
-            >
-              <Text style={styles.buttonText}>
-                {loading ? 'Processando...' : 'Finalizar Cadastro'}
-              </Text>
-            </TouchableOpacity>
+            {!success && (
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>
+                  Já possui conta?{' '}
+                  <Text style={styles.link} onPress={() => navigation.navigate('Login')}>
+                    Voltar ao Login
+                  </Text>
+                </Text>
+              </View>
+            )}
           </View>
-        )}
-
-        {!success && (
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              Já possui conta?{' '}
-              <Text style={styles.link} onPress={() => navigation.navigate('Login')}>
-                Voltar ao Login
-              </Text>
-            </Text>
-          </View>
-        )}
-      </View>
         </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

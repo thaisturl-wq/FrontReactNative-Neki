@@ -16,6 +16,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation';
 import type { Event } from '../../types/event';
 import styles from './style';
+import { useAuth } from '../../context/AuthContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type DashboardRouteProp = RouteProp<RootStackParamList, 'Dashboard'>;
@@ -23,7 +24,11 @@ type DashboardRouteProp = RouteProp<RootStackParamList, 'Dashboard'>;
 const Dashboard: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<DashboardRouteProp>();
-  const { admin } = route.params || {};
+  const { signOut, user: authUser } = useAuth();
+
+  // Usa o admin da rota ou o usuário do contexto
+  const admin = route.params?.admin || authUser;
+
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -33,21 +38,12 @@ const Dashboard: React.FC = () => {
   const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
   const [eventToDelete, setEventToDelete] = useState<number | null>(null);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
   const [showToast, setShowToast] = useState(false);
 
-  useEffect(() => {
-    const getToken = async () => {
-      const storedToken = await AsyncStorage.getItem('token');
-      setToken(storedToken);
-    };
-    getToken();
-  }, []);
-
   const handleLogout = async (): Promise<void> => {
-    await AsyncStorage.clear();
+    await signOut();
     navigation.navigate('Login');
   };
 
@@ -112,10 +108,10 @@ const Dashboard: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      
+
       {/* Toast Notification */}
       <Toast message={toastMessage} type={toastType} visible={showToast} />
-      
+
       {/* Navbar */}
       <View style={styles.navbar}>
         <View style={styles.navContent}>

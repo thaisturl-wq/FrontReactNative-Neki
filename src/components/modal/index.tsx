@@ -37,7 +37,7 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, onSave, editin
     if (!title) return;
 
     const adminId = await AsyncStorage.getItem('adminId');
-    
+
     const eventData = {
       title,
       description,
@@ -63,16 +63,16 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, onSave, editin
 
   return (
     <Modal visible={isOpen} transparent animationType="fade">
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={styles.overlay}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <TouchableOpacity 
-          style={styles.backdrop} 
-          activeOpacity={1} 
+        <TouchableOpacity
+          style={styles.backdrop}
+          activeOpacity={1}
           onPress={onClose}
         />
-        
+
         <View style={styles.content}>
           <View style={styles.header}>
             <Text style={styles.title}>
@@ -87,19 +87,29 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, onSave, editin
             <View style={styles.formGroup}>
               <Text style={styles.label}>Título do Evento</Text>
               <TextInput
-                style={[styles.input, titleFocused && styles.inputFocused]}
+                style={[
+                  styles.input,
+                  titleFocused && styles.inputFocused,
+                  editingEvent && { backgroundColor: '#f5f5f5', color: '#999' }
+                ]}
                 placeholder="Ex: Conferência Anual"
                 value={title}
                 onChangeText={setTitle}
                 onFocus={() => setTitleFocused(true)}
                 onBlur={() => setTitleFocused(false)}
+                editable={!editingEvent}
               />
             </View>
 
             <View style={styles.formGroup}>
               <Text style={styles.label}>Descrição</Text>
               <TextInput
-                style={[styles.input, descFocused && styles.inputFocused, { minHeight: 80 }]}
+                style={[
+                  styles.input,
+                  descFocused && styles.inputFocused,
+                  { minHeight: 80 },
+                  editingEvent && { backgroundColor: '#f5f5f5', color: '#999' }
+                ]}
                 placeholder="Descreva o evento..."
                 value={description}
                 onChangeText={setDescription}
@@ -107,6 +117,7 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, onSave, editin
                 numberOfLines={4}
                 onFocus={() => setDescFocused(true)}
                 onBlur={() => setDescFocused(false)}
+                editable={!editingEvent}
               />
             </View>
 
@@ -115,7 +126,7 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, onSave, editin
                 <Text style={styles.label}>Data</Text>
                 <TextInput
                   style={[styles.input, styles.inputSmall, dateFocused && styles.inputFocused]}
-                  placeholder="DD/MM/AAAA"
+                  placeholder="YYYY-MM-DD"
                   value={date}
                   onChangeText={setDate}
                   onFocus={() => setDateFocused(true)}
@@ -139,24 +150,29 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, onSave, editin
             <View style={styles.formGroup}>
               <Text style={styles.label}>URL da Imagem</Text>
               <TextInput
-                style={[styles.input, imageFocused && styles.inputFocused]}
+                style={[
+                  styles.input,
+                  imageFocused && styles.inputFocused,
+                  editingEvent && { backgroundColor: '#f5f5f5', color: '#999' }
+                ]}
                 placeholder="https://exemplo.com/imagem.jpg"
                 value={imageUrl}
                 onChangeText={setImageUrl}
                 onFocus={() => setImageFocused(true)}
                 onBlur={() => setImageFocused(false)}
+                editable={!editingEvent}
               />
             </View>
 
             <View style={styles.actions}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.btnCancel}
                 onPress={onClose}
               >
                 <Text style={styles.btnCancelText}>Cancelar</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.btnSubmit, !title && styles.btnSubmitDisabled]}
                 onPress={handleSave}
                 disabled={!title}

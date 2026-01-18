@@ -10,12 +10,13 @@ import Register from './src/pages/register';
 import Dashboard from './src/pages/dashboard';
 import ClockIcon from './src/components/ClockIcon';
 import type { RootStackParamList } from './src/types/navigation';
+import { AuthProvider } from './src/context/AuthContext';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 SplashScreen.preventAutoHideAsync();
 
-export default function App(): JSX.Element {
+export default function App(): React.ReactElement {
   const [appIsReady, setAppIsReady] = useState(false);
 
   useEffect(() => {
@@ -45,14 +46,16 @@ export default function App(): JSX.Element {
   }
 
   return (
-    <NavigationContainer>
-      <StatusBar style="auto" />
-      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Register" component={Register} />
-        <Stack.Screen name="Dashboard" component={Dashboard} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <AuthProvider>
+      <NavigationContainer>
+        <StatusBar style="auto" />
+        <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Register" component={Register} />
+          <Stack.Screen name="Dashboard" component={Dashboard} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </AuthProvider>
   );
 }
 

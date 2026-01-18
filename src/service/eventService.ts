@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Event } from '../types/event';
+import api from './api';
 
 const STORAGE_KEY = '@events_storage';
 
@@ -118,37 +119,51 @@ const INITIAL_EVENTS: Event[] = [
 ];
 
 class EventService {
-  // Inicializa o storage com eventos padrão se estiver vazio
+  // Inicializa eventos (Não necessário com API real, mantido vazio ou removido)
   async initializeEvents(): Promise<void> {
-    try {
-      const storedEvents = await AsyncStorage.getItem(STORAGE_KEY);
-      if (!storedEvents) {
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_EVENTS));
-      }
-    } catch (error) {
-      console.error('Erro ao inicializar eventos:', error);
-    }
+    // API real não precisa de inicialização local
   }
 
   // Busca todos os eventos
   async getEvents(): Promise<Event[]> {
     try {
-      const storedEvents = await AsyncStorage.getItem(STORAGE_KEY);
-      if (storedEvents) {
-        return JSON.parse(storedEvents);
-      }
-      // Se não houver eventos salvos, retorna os eventos iniciais
-      await this.initializeEvents();
-      return INITIAL_EVENTS;
+      const response = await api.get('/events');
+      // Mapeando dados do backend para o modelo do frontend se necessário
+      // Backend: id, name, date, location, image
+      // Frontend: id, title, date, location, imageUrl, description...
+
+      const backendEvents = response.data;
+
+      // Adaptando campos
+      return backendEvents.map((e: any) => ({
+        id: e.id,
+        adminId: e.adminId ?? 1, // Fallback se não vier
+        title: e.name, // Mapeia name -> title
+        description: e.description || 'Sem descrição',
+        date: e.date, // Formato esperado: YYYY-MM-DD
+        startTime: e.startTime || '',
+        endTime: e.endTime || '',
+        location: e.location,
+        imageUrl: e.image, // Mapeia image -> imageUrl
+      }));
+
     } catch (error) {
       console.error('Erro ao buscar eventos:', error);
-      return INITIAL_EVENTS;
+      throw error;
     }
   }
 
   // Busca um evento específico por ID
   async getEventById(id: number): Promise<Event | null> {
     try {
+      // Como o endpoint /events/{id} não foi explicitamente detalhado na lista de endpoints GET,
+      // mas é padrão REST. Se não existir, podemos filtrar da lista.
+      // Assumindo que podemos filtrar da lista para garantir consistência com o que temos hoje,
+      // ou implementar chamada direta se houver endpoint GET /events/{id}
+
+      // Vamos tentar buscar da lista para garantir performance se a lista já estiver carregada em cache, 
+      // mas aqui é um service stateless. 
+      // Vamos usar a lista completa por enquanto pois a doc só listou GET /events
       const events = await this.getEvents();
       return events.find(event => event.id === id) || null;
     } catch (error) {
@@ -160,15 +175,25 @@ class EventService {
   // Cria um novo evento
   async createEvent(eventData: Omit<Event, 'id'>): Promise<Event> {
     try {
-      const events = await this.getEvents();
-      const newId = events.length > 0 ? Math.max(...events.map(e => e.id)) + 1 : 1;
-      const newEvent: Event = {
-        ...eventData,
-        id: newId,
+      // Mapeando payload para o backend
+      // Backend espera: { name, date, location, image }
+      const payload = {
+        name: eventData.title,
+        date: eventData.date, // Deve estar em YYYY-MM-DD
+        location: eventData.location,
+        image: eventData.imageUrl
       };
-      const updatedEvents = [...events, newEvent];
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedEvents));
-      return newEvent;
+
+      const response = await api.post('/events', payload);
+      const newEvent = response.data;
+
+      // Retorna formato frontend
+      return {
+        ...eventData,
+        id: newEvent.id,
+        // Mantemos os dados locais que enviamos pois o backend pode não retornar tudo
+        // Mas idealmente usamos o retorno.
+      } as Event;
     } catch (error) {
       console.error('Erro ao criar evento:', error);
       throw error;
@@ -178,22 +203,16 @@ class EventService {
   // Atualiza um evento existente
   async updateEvent(id: number, eventData: Partial<Event>): Promise<Event | null> {
     try {
-      const events = await this.getEvents();
-      const eventIndex = events.findIndex(event => event.id === id);
-      
-      if (eventIndex === -1) {
-        return null;
-      }
+      // Backend permite atualizar apenas date e location
+      const payload: any = {};
+      if (eventData.date) payload.date = eventData.date;
+      if (eventData.location) payload.location = eventData.location;
 
-      const updatedEvent = {
-        ...events[eventIndex],
-        ...eventData,
-        id, // Garante que o ID não seja alterado
-      };
+      // Se houver outros campos que o backend aceita, adicione aqui.
+      // A doc diz: "Envie apenas o que deseja alterar, mas lembre-se que o backend só permite date e location"
 
-      events[eventIndex] = updatedEvent;
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(events));
-      return updatedEvent;
+      const response = await api.put(`/events/${id}`, payload);
+      return response.data; // Assumindo que retorna o evento atualizado
     } catch (error) {
       console.error('Erro ao atualizar evento:', error);
       throw error;
@@ -203,29 +222,17 @@ class EventService {
   // Deleta um evento
   async deleteEvent(id: number): Promise<boolean> {
     try {
-      const events = await this.getEvents();
-      const filteredEvents = events.filter(event => event.id !== id);
-      
-      if (filteredEvents.length === events.length) {
-        return false; // Evento não encontrado
-      }
-
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(filteredEvents));
+      await api.delete(`/events/${id}`);
       return true;
     } catch (error) {
       console.error('Erro ao deletar evento:', error);
-      throw error;
+      return false;
     }
   }
 
-  // Reseta os eventos para os valores iniciais
+  // Reseta os eventos (Não aplicável API real)
   async resetEvents(): Promise<void> {
-    try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_EVENTS));
-    } catch (error) {
-      console.error('Erro ao resetar eventos:', error);
-      throw error;
-    }
+    // No-op
   }
 }
 

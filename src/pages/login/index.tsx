@@ -8,11 +8,14 @@ import styles from './style';
 import type { RootStackParamList } from '../../types/navigation';
 import { DEFAULT_CREDENTIALS } from '../../config/credentials';
 import ClockIcon from '../../components/ClockIcon';
+import api from '../../service/api';
+import { useAuth } from '../../context/AuthContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const Login: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -35,13 +38,6 @@ const Login: React.FC = () => {
     return emailRegex.test(email);
   };
 
-  const validatePassword = (password: string): boolean => {
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    const hasMinLength = password.length >= 8;
-    return hasUpperCase && hasSpecialChar && hasMinLength;
-  };
-
   const handleEmailChange = (text: string) => {
     setEmail(text);
     const isValid = validateEmail(text);
@@ -61,7 +57,7 @@ const Login: React.FC = () => {
       hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(text),
     };
     setPasswordRequirements(requirements);
-    
+
     const isValid = requirements.minLength && requirements.hasUpperCase && requirements.hasSpecialChar;
     if (text && !isValid) {
       setPasswordError('Preencha todos os requisitos');
@@ -74,20 +70,13 @@ const Login: React.FC = () => {
     React.useCallback(() => {
       const initializeCredentials = async (): Promise<void> => {
         try {
-          // Verifica se já existe usuário cadastrado
+          // Verifica se já existe usuário cadastrado para preenchimento automático
           const savedEmail = await AsyncStorage.getItem('userEmail');
-          
+
           if (!savedEmail) {
-            // Se não existir, salva as credenciais padrão
-            await AsyncStorage.setItem('userEmail', DEFAULT_CREDENTIALS.email);
-            await AsyncStorage.setItem('userPassword', DEFAULT_CREDENTIALS.password);
-            await AsyncStorage.setItem('userName', DEFAULT_CREDENTIALS.name);
-            
-            // Preenche os campos para facilitar o primeiro login
             setEmail(DEFAULT_CREDENTIALS.email);
             setPassword(DEFAULT_CREDENTIALS.password);
           } else {
-            // Carrega credenciais salvas
             setEmail(savedEmail);
             const savedPassword = await AsyncStorage.getItem('userPassword');
             if (savedPassword) setPassword(savedPassword);
@@ -108,35 +97,37 @@ const Login: React.FC = () => {
       return;
     }
 
-    // Validação local das credenciais
-    if (email !== DEFAULT_CREDENTIALS.email || password !== DEFAULT_CREDENTIALS.password) {
-      setError('Email ou senha incorretos.');
-      return;
-    }
-
     setLoading(true);
     try {
-      // Autenticação local sem backend
-      const admin = {
-        id: 1,
-        name: DEFAULT_CREDENTIALS.name,
-        email: DEFAULT_CREDENTIALS.email,
-      };
-      const token = 'local-token-' + Date.now();
-      
-      await AsyncStorage.setItem('token', token);
-      await AsyncStorage.setItem('adminId', admin.id.toString());
+      const response = await api.post('/users/login', {
+        email,
+        password
+      });
+
+      const { token, user } = response.data;
+
+      // Utiliza o hook global de autenticação
+      await signIn({ token, user });
 
       if (rememberPassword) {
         await AsyncStorage.setItem('userEmail', email);
         await AsyncStorage.setItem('userPassword', password);
-        await AsyncStorage.setItem('userName', admin.name);
       }
 
-      navigation.navigate('Dashboard', { admin });
-    } catch (err) {
-      setError('Erro ao fazer login. Tente novamente.');
+      const adminData = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      };
+
+      navigation.navigate('Dashboard', { admin: adminData });
+    } catch (err: any) {
       console.error('Erro no login:', err);
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        setError('E-mail ou senha incorretos.');
+      } else {
+        setError('Erro ao conectar com o servidor. Verifique se o backend está rodando.');
+      }
     } finally {
       setLoading(false);
     }
@@ -150,113 +141,113 @@ const Login: React.FC = () => {
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-      <View style={styles.card}>
-        <View style={styles.header}>
-          <View style={styles.logoIcon}>
-            <ClockIcon size={84} color="#000000" />
-          </View>
-          <Text style={styles.brand}>Bem-vindo</Text>
-          <Text style={styles.title}>Acesse sua conta</Text>
-        </View>
+          <View style={styles.card}>
+            <View style={styles.header}>
+              <View style={styles.logoIcon}>
+                <ClockIcon size={84} color="#000000" />
+              </View>
+              <Text style={styles.brand}>Bem-vindo</Text>
+              <Text style={styles.title}>Acesse sua conta</Text>
+            </View>
 
-        <View style={styles.form}>
-          <View style={styles.field}>
-            <Text style={styles.label}>E-mail Administrativo</Text>
-            <TextInput
-              style={[styles.input, emailFocused && styles.inputFocused, emailError && styles.inputError]}
-              placeholder="admin@exemplo.com"
-              value={email}
-              onChangeText={handleEmailChange}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              onFocus={() => setEmailFocused(true)}
-              onBlur={() => setEmailFocused(false)}
-            />
-            {email && emailValid ? (
-              <Text style={styles.fieldSuccess}>✓ E-mail válido</Text>
-            ) : emailError ? (
-              <Text style={styles.fieldError}>{emailError}</Text>
-            ) : null}
-          </View>
+            <View style={styles.form}>
+              <View style={styles.field}>
+                <Text style={styles.label}>E-mail Administrativo</Text>
+                <TextInput
+                  style={[styles.input, emailFocused && styles.inputFocused, emailError && styles.inputError]}
+                  placeholder="admin@exemplo.com"
+                  value={email}
+                  onChangeText={handleEmailChange}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  onFocus={() => setEmailFocused(true)}
+                  onBlur={() => setEmailFocused(false)}
+                />
+                {email && emailValid ? (
+                  <Text style={styles.fieldSuccess}>✓ E-mail válido</Text>
+                ) : emailError ? (
+                  <Text style={styles.fieldError}>{emailError}</Text>
+                ) : null}
+              </View>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>Senha</Text>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={[styles.inputPassword, passwordFocused && styles.inputFocused, passwordError && styles.inputError]}
-                placeholder="••••••••"
-                value={password}
-                onChangeText={handlePasswordChange}
-                secureTextEntry={!showPassword}
-                onFocus={() => setPasswordFocused(true)}
-                onBlur={() => setPasswordFocused(false)}
-              />
+              <View style={styles.field}>
+                <Text style={styles.label}>Senha</Text>
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={[styles.inputPassword, passwordFocused && styles.inputFocused, passwordError && styles.inputError]}
+                    placeholder="••••••••"
+                    value={password}
+                    onChangeText={handlePasswordChange}
+                    secureTextEntry={!showPassword}
+                    onFocus={() => setPasswordFocused(true)}
+                    onBlur={() => setPasswordFocused(false)}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeIcon}
+                    onPress={() => setShowPassword(!showPassword)}
+                  >
+                    <Text style={styles.eyeText}>{showPassword ? '○' : '●'}</Text>
+                  </TouchableOpacity>
+                </View>
+                {password ? (
+                  <View style={styles.requirementsContainer}>
+                    <Text style={[styles.requirement, passwordRequirements.minLength && styles.requirementMet]}>
+                      {passwordRequirements.minLength ? '✓' : '○'} Mínimo 8 caracteres
+                    </Text>
+                    <Text style={[styles.requirement, passwordRequirements.hasUpperCase && styles.requirementMet]}>
+                      {passwordRequirements.hasUpperCase ? '✓' : '○'} 1 letra maiúscula
+                    </Text>
+                    <Text style={[styles.requirement, passwordRequirements.hasSpecialChar && styles.requirementMet]}>
+                      {passwordRequirements.hasSpecialChar ? '✓' : '○'} 1 caractere especial (!@#$%...)
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+
+              <View style={styles.formOptions}>
+                <TouchableOpacity
+                  style={styles.checkbox}
+                  onPress={() => setRememberPassword(!rememberPassword)}
+                >
+                  <View style={[styles.checkboxBox, rememberPassword && styles.checkboxBoxChecked]}>
+                    {rememberPassword && <View style={styles.checkboxInner} />}
+                  </View>
+                  <Text style={styles.checkboxLabel}>Salvar senha</Text>
+                </TouchableOpacity>
+              </View>
+
+              {error && <Text style={styles.errorMessage}>{error}</Text>}
+
               <TouchableOpacity
-                style={styles.eyeIcon}
-                onPress={() => setShowPassword(!showPassword)}
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={handleSubmit}
+                disabled={loading}
               >
-                <Text style={styles.eyeText}>{showPassword ? '○' : '●'}</Text>
+                <Text style={styles.buttonText}>
+                  {loading ? 'Processando...' : 'Entrar'}
+                </Text>
               </TouchableOpacity>
             </View>
-            {password ? (
-              <View style={styles.requirementsContainer}>
-                <Text style={[styles.requirement, passwordRequirements.minLength && styles.requirementMet]}>
-                  {passwordRequirements.minLength ? '✓' : '○'} Mínimo 8 caracteres
+
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>
+                Não possui conta?{' '}
+                <Text style={styles.link} onPress={() => navigation.navigate('Register')}>
+                  Criar Nova Conta
                 </Text>
-                <Text style={[styles.requirement, passwordRequirements.hasUpperCase && styles.requirementMet]}>
-                  {passwordRequirements.hasUpperCase ? '✓' : '○'} 1 letra maiúscula
-                </Text>
-                <Text style={[styles.requirement, passwordRequirements.hasSpecialChar && styles.requirementMet]}>
-                  {passwordRequirements.hasSpecialChar ? '✓' : '○'} 1 caractere especial (!@#$%...)
-                </Text>
-              </View>
-            ) : null}
+              </Text>
+              <Text style={[styles.footerText, { marginTop: 16, fontSize: 10, color: '#d4d4d4' }]}>
+                Credenciais padrão: {DEFAULT_CREDENTIALS.email} / {DEFAULT_CREDENTIALS.password}
+              </Text>
+            </View>
           </View>
-
-          <View style={styles.formOptions}>
-            <TouchableOpacity 
-              style={styles.checkbox}
-              onPress={() => setRememberPassword(!rememberPassword)}
-            >
-              <View style={[styles.checkboxBox, rememberPassword && styles.checkboxBoxChecked]}>
-                {rememberPassword && <View style={styles.checkboxInner} />}
-              </View>
-              <Text style={styles.checkboxLabel}>Salvar senha</Text>
-            </TouchableOpacity>
-          </View>
-
-          {error && <Text style={styles.errorMessage}>{error}</Text>}
-
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Processando...' : 'Entrar'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Não possui conta?{' '}
-            <Text style={styles.link} onPress={() => navigation.navigate('Register')}>
-              Criar Nova Conta
-            </Text>
-          </Text>
-          <Text style={[styles.footerText, { marginTop: 16, fontSize: 10, color: '#d4d4d4' }]}>
-            Credenciais padrão: {DEFAULT_CREDENTIALS.email} / {DEFAULT_CREDENTIALS.password}
-          </Text>
-        </View>
-      </View>
         </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
