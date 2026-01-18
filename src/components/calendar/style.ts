@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   },
   weekDaysHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     marginBottom: 12,
   },
   weekDayText: {
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   },
   week: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     marginBottom: 8,
   },
   dayCell: {
